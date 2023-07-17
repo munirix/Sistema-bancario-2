@@ -47,7 +47,6 @@ def criar_conta(agencia,numero_conta,usuarios):
     cpf = input("Informe o CPF do usuário: ")
     usuario = filtrar_usuario(cpf, usuarios)
     if usuario:
-        #index = filtrar_usuario_index(cpf, usuarios)
         print(Fore.GREEN + "Conta criada com sucesso!" + Fore.RESET)
         return {"agencia":agencia, "numero_conta":numero_conta, "usuario": usuario, "saldo_conta":0, "cpf":cpf, "extrato":"","num_saques":0}
     print(Fore.RED + "Usuário não encontrado, fluxo de criação de conta encerrado!" + Fore.RESET)
@@ -64,8 +63,7 @@ def depositar(val,contas,usuarios, /): # por posição
                 print(Fore.RED + "\nErro! Não foi possivel realizar o deposito, a conta não era válido." + Fore.RESET)
                 return 
 
-            m["saldo_conta"] = m["saldo_conta"] + val
-            #extrato += f"\n\t[1] Depósito: R$ {val:.2f}"  
+            m["saldo_conta"] = m["saldo_conta"] + val 
             m["extrato"] += f"\n\t[1] Depósito: R$ {val:.2f}"  
             print(Fore.GREEN + "Depósito realizado com sucesso!" + Fore.RESET)
         else:
@@ -77,11 +75,13 @@ def sacar(*, val,NUM_LIM_SAQUE,limite_sacar,usuarios,contas):
     cpf = input("Informe o CPF(somente números): ")
     usuario = filtrar_usuario(cpf,usuarios)
 
-    [print("Disponivel conta: ",conta["numero_conta"]) for conta in contas if conta["cpf"]==cpf]
-    conta_inserida = int(input("Insira a conta de sua escolha: "))
-    m = filtrar_conta(contas,conta_inserida)
-
     if usuario:
+        [print("Disponivel conta: ",conta["numero_conta"]) for conta in contas if conta["cpf"]==cpf]
+        conta_inserida = int(input("Insira a conta de sua escolha: "))
+        m = filtrar_conta(contas,conta_inserida)
+        if not m:
+                print(Fore.RED + "\nErro! Não foi possivel realizar o deposito, a conta não era válido." + Fore.RESET)
+                return 
         if val > m["saldo_conta"]:
             print(Fore.RED + "\nErro! Não foi possivel realizar o saque pois o saldo não é suficiente." + Fore.RESET)
         elif val > limite_sacar:
@@ -89,35 +89,31 @@ def sacar(*, val,NUM_LIM_SAQUE,limite_sacar,usuarios,contas):
         elif m["num_saques"] >= NUM_LIM_SAQUE:
             print(Fore.RED + "\nErro! Não foi possivel realizar o saque pois foi excedido o número máximo de saques." + Fore.RESET)
         elif val > 0:
-            
-            if not m:
-                print(Fore.RED + "\nErro! Não foi possivel realizar o deposito, a conta não era válido." + Fore.RESET)
-                return 
-            
             m["saldo_conta"] = m["saldo_conta"] - val
             m["extrato"] += f"\n\t[2] Saque: R$ {val:.2f}"
             m["num_saques"]+=1
             print(Fore.GREEN + "Saque realizado com sucesso!" + Fore.RESET)
         else:
             print(Fore.RED + "\nErro! O valor informado não é válido." + Fore.RESET)
-    # colocar limite de numero de saques depois!
+    else:
+        print(Fore.RED + "\nErro! O usuário não foi encontrado." + Fore.RESET)
 
-#olhar
-def imprimirExtrato(usuarios,/,*,contas):
+def imprimirExtrato(usuarios,/,*,contas): 
     cpf = input("Informe o CPF(somente números): ")
     usuario = filtrar_usuario(cpf,usuarios)
-
-    [print("Disponivel conta: ",conta["numero_conta"]) for conta in contas if conta["cpf"]==cpf]
-    conta_inserida = int(input("Insira a conta de sua escolha: "))
-    m = filtrar_conta(contas,conta_inserida)
-
-    # !!! adicionar condição para q n possa ser acessada uma conta de um cpf ao qual não pertence!!!!!!
-
     if usuario:
+        [print("Disponivel conta: ",conta["numero_conta"]) for conta in contas if conta["cpf"]==cpf]
+        conta_inserida = int(input("Insira a conta de sua escolha: "))
+        m = filtrar_conta(contas,conta_inserida)
+        if not m:
+            print(Fore.RED + "\nErro! A conta não era válido." + Fore.RESET)
+            return 
         print('\n')
         print(Fore.BLUE + f" EXTRATO {conta_inserida} ".center(40,"="))
         print(f"\nNão houve movimentação na conta.\n" if not m["extrato"] else m["extrato"])
         print(f"\n\tSaldo: R$ {m['saldo_conta']:.2f}\n"+("="*40) + Fore.RESET)
+    else:
+        print(Fore.RED + "\nErro! O CPF não era válido." + Fore.RESET)
 
 def listar_contas(contas):
     for conta in contas:
